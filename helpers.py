@@ -5,6 +5,7 @@ def check_path(abs_path):
     """
         Checking URL to avoid LFI
     """
+
     return (not os.path.exists(abs_path) or
             not abs_path.startswith(os.path.abspath(os.getcwd())) or
             any([abs_path.startswith(i) for i in deprecated]) or
@@ -12,6 +13,12 @@ def check_path(abs_path):
 
 
 def alert_if_need(path, host, port, tm):
+    """
+        Alert to slack via bot.
+        Requires bot's token providing by
+        SLACK_TOKEN environment variable.
+    """
+
     if path not in alert_list:
         return
     tkn = os.getenv("SLACK_TOKEN")
