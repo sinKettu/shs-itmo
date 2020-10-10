@@ -12,10 +12,10 @@ def check_path(abs_path):
             os.path.isdir(abs_path))
 
 
-def alert_if_need(path, host, port, tm):
+def bot_slack_alert(path, host, port, tm):
     """
         Alert to slack via bot.
-        Requires bot's token providing by
+        Requires bot's token provided by
         SLACK_TOKEN environment variable.
     """
 

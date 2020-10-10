@@ -2,6 +2,8 @@
 
 import argparse
 
+from HTTPRequestHandler import SimpleHTTPRequestHandler
+
 
 def handle_arguments():
     """
@@ -12,11 +14,11 @@ def handle_arguments():
     parser.add_argument("-a", dest="address", type=str,
                         default="127.0.0.1", help="Bind Address")
     parser.add_argument("-p", dest="port", type=int,
-                        default=80, help="Port to listen to.")
-    parser.add_argument("-l", dest="log", help="Path to log file.",
+                        default=80, help="Port to listen to")
+    parser.add_argument("-l", dest="log", help="Path to log file",
                         default=None)
     parser.add_argument("-b", dest="ban", type=str,
-                        default="banned.txt", help="Path to IP ban list.")
+                        default="banned.txt", help="Path to IP ban list")
     args = parser.parse_args()
     return args.address, args.port, args.log, args.ban
 
