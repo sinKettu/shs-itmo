@@ -1,18 +1,13 @@
 #!/bin/python3
 
 import argparse
-from http.server import HTTPServer, BaseHTTPRequestHandler
-
-
-class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
-
-    def do_GET(self):
-        self.send_response(200)
-        self.end_headers()
-        self.wfile.write(b'Hello, world!')
 
 
 def handle_arguments():
+    """
+        Parsing cmd arguments
+    """
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", dest="address", type=str,
                         default="127.0.0.1", help="Bind Address")
@@ -23,7 +18,7 @@ def handle_arguments():
     parser.add_argument("-b", dest="ban", type=str,
                         default="banned.txt", help="Path to IP ban list.")
     args = parser.parse_args()
-    return args.address, args.port, args.log_file, args.ban_file
+    return args.address, args.port, args.log, args.ban
 
 
 def main():
