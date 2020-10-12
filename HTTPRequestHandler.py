@@ -16,7 +16,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         path_content = self.path.split("?", 1)
         url = path_content[0]
-        data = parse_qs(path_content[1]) if len(path_content == 2) else {}
+        data = parse_qs(path_content[1]) if len(path_content) == 2 else {}
         method = "GET"
         in_headers = self.headers
 
