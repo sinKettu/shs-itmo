@@ -1,14 +1,15 @@
-urls:
-    /:
-        type: dynamic
-        handler: null
-    /data/:
-        type: none
-    /data/test/:
-        type: static
-        handler: urls/data/test.html
-    /test/data/: 
-        type: static
-        handler: urls/test/data.html
-        headers:
-            Content-Type: application/json
+/:
+    type: dynamic
+    handler: null
+    methods: ["get"]
+/data/:
+    type: none
+/data/test/:
+    type: static
+    handler: urls/data/test.html
+    methods: ["post"]
+/test/data/: 
+    type: static
+    handler: urls/test/data.html
+    headers:
+        Content-Type: application/json
