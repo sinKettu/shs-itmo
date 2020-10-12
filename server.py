@@ -18,7 +18,8 @@ def handle_arguments():
     parser.add_argument("-l", dest="log", help="Path to log file",
                         default=None)
     parser.add_argument("-b", dest="ban", type=str,
-                        default="banned.txt", help="Path to IP ban list")
+                        default="config/banned.txt",
+                        help="Path to IP ban list")
     args = parser.parse_args()
     return args.address, args.port, args.log, args.ban
 
