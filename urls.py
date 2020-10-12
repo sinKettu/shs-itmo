@@ -71,7 +71,7 @@ class URLHandler:
         else:
             self.urls[url]["handler"] = handler
 
-    def handle(self, url, method, headers, data):
+    def handle(self, url, method, in_headers, data):
         """
             Handling requests by type of url
         """
@@ -92,7 +92,7 @@ class URLHandler:
             headers = self.urls[url].get("headers", [])
             status, data, headers = self.urls[url]["handler"](
                 method,
-                headers,
+                in_headers,
                 data
             )
 
