@@ -13,10 +13,7 @@
 #
 # stdout_log on
 # log_file log.txt
-#
-# Log files can be named as a date when server was started
-# log_file %DATE%
 
 # 3. Baned IP list
 #
-# ip_ban banned.txt
+# ip_ban config/banned.txt
