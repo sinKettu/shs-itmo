@@ -1,6 +1,7 @@
 from os import path
 import yaml
 
+# Global private storage for main URLHandler instance
 __uhandler = None
 
 
@@ -103,6 +104,9 @@ class URLHandler:
 
 
 def setup_url_handler():
+    """
+        Initialize URLHandler instance if it does not exist
+    """
     global __uhandler
     if __uhandler is not None:
         return
@@ -111,5 +115,5 @@ def setup_url_handler():
     __uhandler.update_urls_info()
 
 
-def get_url_handler():
+def get_url_handler() -> URLHandler:
     return __uhandler

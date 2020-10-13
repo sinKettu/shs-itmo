@@ -4,12 +4,18 @@ from urllib.parse import parse_qs
 from urls import URLHandler, setup_url_handler, get_url_handler
 from mappings import default
 
+# Need to write accordance of dynamic page url and handler-function here
 __handlers_mapping = [
     ("/", default.handle_default)
 ]
 
 
 def prepare_handlers():
+    """
+        The routine prepares URLHandler to work
+        with HTTP handler. Need to be called berfore
+        HTTPServer() initialization.
+    """
     setup_url_handler()
     uhandler = get_url_handler()
     for mapping in __handlers_mapping:
