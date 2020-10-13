@@ -23,9 +23,31 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         path_content = self.path.split("?", 1)
         url = path_content[0]
+        if not url[-1] == "/":  # crutch needed to be fixed with redirect
+            url += "/"
         data = parse_qs(path_content[1]) if len(path_content) == 2 else {}
         method = "GET"
         in_headers = dict(self.headers)
+
+        status, data, headers = self.uhandler.handle(
+            url,
+            method,
+            in_headers,
+            data
+        )
+
+        self.send_response(status)
+        self.add_headers(headers)
+        self.wfile.write(data)
+
+    def do_POST(self):
+        url = self.path.split("?", 1)[0]
+        if not url[-1] == "/":  # crutch needed to be fixed with redirect
+            url += "/"
+        in_headers = dict(self.headers)
+        content_len = int(in_headers.get("Content-Length"))
+        data = self.rfile.read(content_len)
+        method = "POST"
 
         status, data, headers = self.uhandler.handle(
             url,
