@@ -62,7 +62,7 @@ class URLHandler:
     def update_urls_info(self):
         self.urls = self.__parse_urls()
 
-    def map_url_with_handler(self, url, handler):
+    def map_url_with_handler(self, url: str, handler):
         """
             Mapping dynamic pages with handler-functions to process it
         """
@@ -75,25 +75,25 @@ class URLHandler:
         else:
             self.urls[url]["handler"] = handler
 
-    def handle(self, url, method, in_headers, data):
+    def handle(self, url: str, method: str, in_headers: dict, data: bytes):
         """
             Handling requests by type of url
         """
         if url not in self.urls:
-            return 404, b"Page Not Found", []
+            return 404, b"Page Not Found", {}
         elif method not in self.urls[url]["methods"]:
-            return 405, b"Method not Allowed", []
+            return 405, b"Method not Allowed", {}
         elif self.urls[url]["type"] == self.not_existing_page:
-            headers = self.urls[url].get("headers", [])
+            headers = self.urls[url].get("headers", {})
             return 404, b"Page Not Found", headers
         elif self.urls[url]["type"] == self.static_page:
-            headers = self.urls[url].get("headers", [])
+            headers = self.urls[url].get("headers", {})
             fin = open(self.urls[url]["handler"], "rb")
             data = fin.read()
             fin.close()
             return 200, data, headers
         elif self.urls[url]["type"] == self.dynamic_page:
-            headers = self.urls[url].get("headers", [])
+            headers = self.urls[url].get("headers", {})
             status, data, headers = self.urls[url]["handler"](
                 method,
                 in_headers,
