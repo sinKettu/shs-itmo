@@ -1,6 +1,8 @@
 from os import path
 import yaml
 
+__uhandler = None
+
 
 class URLHandler:
 
@@ -98,3 +100,16 @@ class URLHandler:
             )
 
             return status, data, headers
+
+
+def setup_url_handler():
+    global __uhandler
+    if __uhandler is not None:
+        return
+
+    __uhandler = URLHandler()
+    __uhandler.update_urls_info()
+
+
+def get_url_handler():
+    return __uhandler

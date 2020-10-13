@@ -3,7 +3,7 @@
 import argparse
 from http.server import HTTPServer
 
-from HTTPRequestHandler import SimpleHTTPRequestHandler
+import HTTPRequestHandler as rh
 
 
 def handle_arguments():
@@ -31,7 +31,8 @@ def main():
     log_file = args[2]
     ban_file = args[3]
 
-    httpd = HTTPServer(bind_addr, SimpleHTTPRequestHandler)
+    rh.prepare_handlers()
+    httpd = HTTPServer(bind_addr, rh.SimpleHTTPRequestHandler)
     httpd.serve_forever()
 
 

@@ -1,17 +1,22 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs
 
-from urls import URLHandler
-
+from urls import URLHandler, setup_url_handler, get_url_handler
 from mappings import default
+
+__handlers_mapping = [
+    ("/", default.handle_default)
+]
+
+
+def prepare_handlers():
+    setup_url_handler()
+    uhandler = get_url_handler()
+    for mapping in __handlers_mapping:
+        uhandler.map_url_with_handler(*mapping)
 
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
-    def __init__(self, request, client_address, server):
-        self.uhandler = URLHandler()
-        self.uhandler.update_urls_info()
-        self.uhandler.map_url_with_handler("/", default.handle_default)
-        super().__init__(request, client_address, server)
 
     def version_string(self):
         return "Unknown Server"
@@ -31,7 +36,8 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         method = "GET"
         in_headers = dict(self.headers)
 
-        status, data, headers = self.uhandler.handle(
+        uhandler = get_url_handler()
+        status, data, headers = uhandler.handle(
             url,
             method,
             in_headers,
@@ -51,7 +57,8 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         data = self.rfile.read(content_len)
         method = "POST"
 
-        status, data, headers = self.uhandler.handle(
+        uhandler = get_url_handler()
+        status, data, headers = uhandler.handle(
             url,
             method,
             in_headers,
