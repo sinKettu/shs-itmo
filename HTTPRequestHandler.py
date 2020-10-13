@@ -13,8 +13,10 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         self.uhandler.map_url_with_handler("/", default.handle_default)
         super().__init__(request, client_address, server)
 
+    def version_string(self):
+        return "Unknown Server"
+
     def add_headers(self, headers):
-        self.send_header("Server", "None")
         for header in headers:
             content = headers[header]
             self.send_header(header, content)
