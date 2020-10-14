@@ -5,6 +5,10 @@ from http.server import HTTPServer
 
 import HTTPRequestHandler as rh
 
+# TODO:
+#   - Parsing config/config
+#   - Using regexps in urls.yaml and when resolving in handler
+
 
 def handle_arguments():
     """
