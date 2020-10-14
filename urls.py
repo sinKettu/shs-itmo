@@ -23,7 +23,7 @@ class URLHandler:
         fin = open(self.urls_path, "r")
         urls = fin.read()
         fin.close()
-        urls = yaml.load(urls, Loader=yaml.FullLoader)
+        urls = yaml.load(urls, Loader=yaml.BaseLoader)
 
         for url in urls:
             tp = urls[url].get("type", None)
