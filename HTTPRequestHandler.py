@@ -24,6 +24,31 @@ def prepare_handlers():
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
+    def log_message(self, *args):
+        """
+            Overriding built-in method for more smart logging
+        """
+        tm = self.log_date_time_string().encode("utf-8")
+        addr, port = self.client_address
+        msg = tm + b"\n" + f"Request from: {addr}:{port}\n\n".encode("utf-8")
+        msg += str(self.requestline).encode("utf-8")
+        msg += str(self.headers).encode("utf-8")
+        length = int(self.headers.get("Content-Length", 0))
+
+        if self.read_data:
+            msg += self.read_data
+
+        msg += b"\n--------------------------------------------------------\n\n"
+        try:
+            print(msg.decode("utf-8"))
+        except UnicodeDecodeError:
+            print(msg)
+
+        if self.server_parameters["log_file"] is not None:
+            fin = open(self.server_parameters["log_file"], "ab")
+            fin.write(msg)
+            fin.close()
+
     def version_string(self):
         return "Unknown Server"
 
@@ -41,6 +66,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         data = parse_qs(path_content[1]) if len(path_content) == 2 else {}
         method = "GET"
         in_headers = dict(self.headers)
+        self.read_data = b""
 
         uhandler = get_url_handler()
         status, data, headers = uhandler.handle(
@@ -59,8 +85,9 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         if not url[-1] == "/":  # crutch needed to be fixed with redirect
             url += "/"
         in_headers = dict(self.headers)
-        content_len = int(in_headers.get("Content-Length"))
+        content_len = int(in_headers.get("Content-Length"), 0)
         data = self.rfile.read(content_len)
+        self.read_data = data
         method = "POST"
 
         uhandler = get_url_handler()
