@@ -10,6 +10,7 @@ import HTTPRequestHandler as rh
 #   - Using regexps in urls.yaml and when resolving in handler
 #   - Ban IP list
 #   - Alerts
+#   - Separate stderr and stdout
 
 
 def handle_arguments():
