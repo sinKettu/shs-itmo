@@ -28,17 +28,37 @@ def handle_arguments():
                         default="config/banned.txt",
                         help="Path to IP ban list")
     args = parser.parse_args()
-    return args.address, args.port, args.log, args.ban
+
+    config = {
+        "address": args.address,
+        "port": args.port,
+        "log_file": args.log,
+        "ban": args.ban
+    }
+
+    return config
+
+
+def handler_factory(parameters: dict):
+    """
+        "Class Factory" needed to implement ability
+        to pass parameters to HTTP handler.
+    """
+    class CustomHandler(rh.SimpleHTTPRequestHandler):
+        def __init__(self, *args, **kwargs):
+            self.server_parameters = parameters
+            super(CustomHandler, self).__init__(*args, **kwargs)
+
+    return CustomHandler
 
 
 def main():
     args = handle_arguments()
-    bind_addr = args[0], args[1]
-    log_file = args[2]
-    ban_file = args[3]
+    bind_addr = args["address"], args["port"]
 
     rh.prepare_handlers()
-    httpd = HTTPServer(bind_addr, rh.SimpleHTTPRequestHandler)
+    new_handler = handler_factory(args)
+    httpd = HTTPServer(bind_addr, new_handler)
     httpd.serve_forever()
 
 
