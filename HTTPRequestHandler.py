@@ -31,14 +31,14 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         tm = self.log_date_time_string().encode("utf-8")
         addr, port = self.client_address
         msg = tm + b"\n" + f"Request from: {addr}:{port}\n\n".encode("utf-8")
-        msg += str(self.requestline).encode("utf-8")
+        msg += str(self.requestline).encode("utf-8") + b"\n"
         msg += str(self.headers).encode("utf-8")
         length = int(self.headers.get("Content-Length", 0))
 
         if self.read_data:
             msg += self.read_data
 
-        msg += b"\n--------------------------------------------------------\n\n"
+        msg += b"\n-------------------------------------------------------\n\n"
         try:
             print(msg.decode("utf-8"))
         except UnicodeDecodeError:
