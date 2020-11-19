@@ -73,7 +73,7 @@ class URLHandler:
         self.re_urls = {i: parsed[i] for i in parsed
                         if parsed[i]["type"] == self.re_page}
 
-        self.urls = {i: parsed[i] for i in parsed
+        self.urls = {i.replace("/", ""): parsed[i] for i in parsed
                         if parsed[i]["type"] != self.re_page}
 
     def map_url_with_handler(self, url: str, handler):
@@ -91,7 +91,6 @@ class URLHandler:
 
     def __check_and_process(self,
                             url_ex: str,
-                            url: str,
                             method: str,
                             in_headers: dict,
                             data: bytes):
@@ -119,10 +118,10 @@ class URLHandler:
             return 404, b"Page Not Found", {}
 
     def handle(self, url: str, method: str, in_headers: dict, data: bytes):
-        if url in self.urls:
+        formatted_url = url.replace("/", "")
+        if formatted_url in self.urls:
             return self.__check_and_process(
-                url,
-                url,
+                formatted_url,
                 method,
                 in_headers,
                 data

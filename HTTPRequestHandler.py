@@ -61,8 +61,6 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         path_content = self.path.split("?", 1)
         url = path_content[0]
-        # if not url[-1] == "/":  # crutch needed to be fixed with redirect
-        #     url += "/"
         data = parse_qs(path_content[1]) if len(path_content) == 2 else {}
         method = "GET"
         in_headers = dict(self.headers)
@@ -82,10 +80,8 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         url = self.path.split("?", 1)[0]
-        # if not url[-1] == "/":  # crutch needed to be fixed with redirect
-        #     url += "/"
         in_headers = dict(self.headers)
-        content_len = int(in_headers.get("Content-Length"), 0)
+        content_len = int(in_headers.get("Content-Length", 0))
         data = self.rfile.read(content_len)
         self.read_data = data
         method = "POST"
