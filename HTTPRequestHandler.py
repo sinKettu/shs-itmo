@@ -2,11 +2,11 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs
 
 from urls import URLHandler, setup_url_handler, get_url_handler
-from mappings import default
+# from mappings import default
 
 # Need to write accordance of dynamic page url and handler-function here
 __handlers_mapping = [
-    ("/", default.handle_default)
+#    ("/", default.handle_default)
 ]
 
 
@@ -61,8 +61,8 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         path_content = self.path.split("?", 1)
         url = path_content[0]
-        if not url[-1] == "/":  # crutch needed to be fixed with redirect
-            url += "/"
+        # if not url[-1] == "/":  # crutch needed to be fixed with redirect
+        #     url += "/"
         data = parse_qs(path_content[1]) if len(path_content) == 2 else {}
         method = "GET"
         in_headers = dict(self.headers)
@@ -82,8 +82,8 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         url = self.path.split("?", 1)[0]
-        if not url[-1] == "/":  # crutch needed to be fixed with redirect
-            url += "/"
+        # if not url[-1] == "/":  # crutch needed to be fixed with redirect
+        #     url += "/"
         in_headers = dict(self.headers)
         content_len = int(in_headers.get("Content-Length"), 0)
         data = self.rfile.read(content_len)

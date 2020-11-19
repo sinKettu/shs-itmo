@@ -1,5 +1,6 @@
 from os import path
 import yaml
+import re
 
 # Global private storage for main URLHandler instance
 __uhandler = None
@@ -10,10 +11,12 @@ class URLHandler:
     not_existing_page = 0
     dynamic_page = 1
     static_page = 2
+    re_page = 3
 
     def __init__(self):
         self.urls_path = "config/urls.yaml"
         self.urls = {}
+        self.re_urls = {}
 
     def __parse_urls(self):
         """
@@ -47,6 +50,12 @@ class URLHandler:
                 if not (path.exists(hlr) and path.isfile(hlr)):
                     err = f"Parsing Error: file {hlr} not found"
                     raise NotImplementedError(err)
+            elif tp == "re":
+                urls[url]["type"] = self.re_page
+                hlr = urls[url].get("handler", 0)
+                if hlr is not None:
+                    err = f"Parsing Error: wrong handler for {url}"
+                    raise NotImplementedError(err)
             else:
                 err = "Parsing Error: wrong url type"
                 raise NotImplementedError(err)
@@ -60,7 +69,12 @@ class URLHandler:
         return urls
 
     def update_urls_info(self):
-        self.urls = self.__parse_urls()
+        parsed = self.__parse_urls()
+        self.re_urls = {i: parsed[i] for i in parsed
+                        if parsed[i]["type"] == self.re_page}
+
+        self.urls = {i: parsed[i] for i in parsed
+                        if parsed[i]["type"] != self.re_page}
 
     def map_url_with_handler(self, url: str, handler):
         """
@@ -75,32 +89,64 @@ class URLHandler:
         else:
             self.urls[url]["handler"] = handler
 
-    def handle(self, url: str, method: str, in_headers: dict, data: bytes):
-        """
-            Handling requests by type of url
-        """
-        if url not in self.urls:
-            return 404, b"Page Not Found", {}
-        elif method not in self.urls[url]["methods"]:
+    def __check_and_process(self,
+                            url_ex: str,
+                            url: str,
+                            method: str,
+                            in_headers: dict,
+                            data: bytes):
+        if method not in self.urls[url_ex]["methods"]:
             return 405, b"Method not Allowed", {}
-        elif self.urls[url]["type"] == self.not_existing_page:
-            headers = self.urls[url].get("headers", {})
+        elif self.urls[url_ex]["type"] == self.not_existing_page:
+            headers = self.urls[url_ex].get("headers", {})
             return 404, b"Page Not Found", headers
-        elif self.urls[url]["type"] == self.static_page:
-            headers = self.urls[url].get("headers", {})
-            fin = open(self.urls[url]["handler"], "rb")
+        elif self.urls[url_ex]["type"] == self.static_page:
+            headers = self.urls[url_ex].get("headers", {})
+            fin = open(self.urls[url_ex]["handler"], "rb")
             data = fin.read()
             fin.close()
             return 200, data, headers
-        elif self.urls[url]["type"] == self.dynamic_page:
-            headers = self.urls[url].get("headers", {})
-            status, data, headers = self.urls[url]["handler"](
+        elif self.urls[url_ex]["type"] == self.dynamic_page:
+            headers = self.urls[url_ex].get("headers", {})
+            status, data, headers = self.urls[url_ex]["handler"](
                 method,
                 in_headers,
                 data
             )
 
             return status, data, headers
+        else:
+            return 404, b"Page Not Found", {}
+
+    def handle(self, url: str, method: str, in_headers: dict, data: bytes):
+        if url in self.urls:
+            return self.__check_and_process(
+                url,
+                url,
+                method,
+                in_headers,
+                data
+            )
+
+        for url_ex in self.re_urls:
+            if re.sub(url_ex, "", url):
+                continue
+            elif method not in self.re_urls[url_ex]["methods"]:
+                return 405, b"Method not Allowed", {}
+            elif self.re_urls[url_ex]["type"] == self.not_existing_page:
+                headers = self.urls[url_ex].get("headers", {})
+                return 404, b"Page Not Found", headers
+            elif (self.re_urls[url_ex]["type"] == self.re_page
+                    and path.abspath(f".{url}").startswith(path.abspath("."))
+                    and path.exists(f".{url}")
+                    and path.isfile(f".{url}")):
+                headers = self.re_urls[url_ex].get("headers", {})
+                fin = open(f".{url}", "rb")
+                data = fin.read()
+                fin.close()
+                return 200, data, headers
+
+        return 404, b"Page Not Found", {}
 
 
 def setup_url_handler():

@@ -1,15 +1,33 @@
+# Dynamic page (constructed by python code)
+# handler is null - always
+# Any methods Yoo want
+# Any headers you want
 /:
     type: dynamic
     handler: null
     methods: ["get"]
+# "None" page - not existing page
+# SHS will return '404 not found'
+# Any Methods
+# Any Headers
 /data/:
     type: none
+# Static page - Usual page loaded from file
+# Handler is path to file (always)
+# Any methods, but actually you will not be
+# able to handle any POST/PUT/DELETE data.
+# If you want do it, use dynamic type
+# Any Headers
 /data/test/:
     type: static
-    handler: urls/data/test.html
+    handler: data/test.html
     methods: ["post"]
-/test/data/: 
-    type: static
-    handler: urls/test/data.html
     headers:
         Content-Type: application/json
+# You can use regular expressions to handle URLs
+# Handler is null or pat
+# Any headers
+# Any methods
+^/test/.*(html|js|png|jpg)/?$:
+    type: re
+    handler: null
