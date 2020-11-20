@@ -199,8 +199,6 @@ def setup_url_handler(token_hash: bytes):
         Initialize URLHandler instance if it does not exist
     """
     global __uhandler
-    if __uhandler is not None:
-        return
 
     if not token_hash:
         token_hash = __uhandler._th

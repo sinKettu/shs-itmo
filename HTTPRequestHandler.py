@@ -6,7 +6,6 @@ from base64 import b64encode
 import random as rand
 
 from urls import URLHandler, setup_url_handler, get_url_handler
-from mapping import get_mappings
 
 
 def generate_session_token():
@@ -27,6 +26,8 @@ def prepare_handlers(token: bytes):
         with HTTP handler. Need to be called berfore
         HTTPServer() initialization.
     """
+    from mapping import get_mappings
+
     setup_url_handler(token)
     uhandler = get_url_handler()
     mappings = get_mappings()
