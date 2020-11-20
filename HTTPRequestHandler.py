@@ -2,27 +2,29 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs
 
 from urls import URLHandler, setup_url_handler, get_url_handler
-# from mappings import default
-
-# Need to write accordance of dynamic page url and handler-function here
-__handlers_mapping = [
-#    ("/", default.handle_default)
-]
+from mapping import get_mappings
 
 
-def prepare_handlers():
-    """
-        The routine prepares URLHandler to work
-        with HTTP handler. Need to be called berfore
-        HTTPServer() initialization.
-    """
-    setup_url_handler()
-    uhandler = get_url_handler()
-    for mapping in __handlers_mapping:
-        uhandler.map_url_with_handler(*mapping)
+
 
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
+
+    def __init__(self, *args, **kwargs):
+        self.prepare_handlers()
+        super(SimpleHTTPRequestHandler, self).__init__(*args, **kwargs)
+
+    def prepare_handlers(self):
+        """
+            The routine prepares URLHandler to work
+            with HTTP handler. Need to be called berfore
+            HTTPServer() initialization.
+        """
+        setup_url_handler()
+        uhandler = get_url_handler()
+        mappings = get_mappings()
+        for mapping in mappings:
+            uhandler.map_url_with_handler(*mapping)
 
     def log_message(self, *args):
         """
@@ -43,11 +45,6 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             print(msg.decode("utf-8"))
         except UnicodeDecodeError:
             print(msg)
-
-        if self.server_parameters["log_file"] is not None:
-            fin = open(self.server_parameters["log_file"], "ab")
-            fin.write(msg)
-            fin.close()
 
     def version_string(self):
         return "Unknown Server"

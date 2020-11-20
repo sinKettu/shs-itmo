@@ -35,7 +35,7 @@ class URLHandler:
             elif tp == "none":
                 urls[url]["type"] = self.not_existing_page
             elif tp == "dynamic":
-                hlr = urls[url].get("handler", 0)
+                hlr = urls[url].get("handler", None)
                 urls[url]["type"] = self.dynamic_page
                 if hlr is not None:
                     err = "Parsing Error: wrong dynamic handler"
@@ -52,7 +52,7 @@ class URLHandler:
                     raise NotImplementedError(err)
             elif tp == "re":
                 urls[url]["type"] = self.re_page
-                hlr = urls[url].get("handler", 0)
+                hlr = urls[url].get("handler", None)
                 if hlr is not None:
                     err = f"Parsing Error: wrong handler for {url}"
                     raise NotImplementedError(err)
@@ -96,24 +96,32 @@ class URLHandler:
                             data: bytes):
         if method not in self.urls[url_ex]["methods"]:
             return 405, b"Method not Allowed", {}
+
         elif self.urls[url_ex]["type"] == self.not_existing_page:
             headers = self.urls[url_ex].get("headers", {})
             return 404, b"Page Not Found", headers
+
         elif self.urls[url_ex]["type"] == self.static_page:
             headers = self.urls[url_ex].get("headers", {})
             fin = open(self.urls[url_ex]["handler"], "rb")
             data = fin.read()
             fin.close()
             return 200, data, headers
-        elif self.urls[url_ex]["type"] == self.dynamic_page:
+
+        elif self.urls[url_ex]["type"] == self.dynamic_page and \
+             self.urls[url_ex]["handler"] is not None:
             headers = self.urls[url_ex].get("headers", {})
             status, data, headers = self.urls[url_ex]["handler"](
                 method,
                 in_headers,
                 data
             )
-
             return status, data, headers
+
+        elif self.urls[url_ex]["type"] == self.dynamic_page and \
+             self.urls[url_ex]["handler"] is None:
+             return 500, b"Internal Server Error", {}
+
         else:
             return 404, b"Page Not Found", {}
 
@@ -130,15 +138,27 @@ class URLHandler:
         for url_ex in self.re_urls:
             if re.sub(url_ex, "", url):
                 continue
+
             elif method not in self.re_urls[url_ex]["methods"]:
                 return 405, b"Method not Allowed", {}
+
             elif self.re_urls[url_ex]["type"] == self.not_existing_page:
                 headers = self.urls[url_ex].get("headers", {})
                 return 404, b"Page Not Found", headers
-            elif (self.re_urls[url_ex]["type"] == self.re_page
-                    and path.abspath(f".{url}").startswith(path.abspath("."))
+
+            elif self.re_urls[url_ex]["handler"] is not None:
+                headers = self.urls[url_ex].get("headers", {})
+                status, data, headers = self.urls[url_ex]["handler"](
+                    url,
+                    method,
+                    in_headers,
+                    data
+                )
+
+            elif (path.abspath(f".{url}").startswith(path.abspath("."))
                     and path.exists(f".{url}")
                     and path.isfile(f".{url}")):
+
                 headers = self.re_urls[url_ex].get("headers", {})
                 fin = open(f".{url}", "rb")
                 data = fin.read()
