@@ -3,14 +3,15 @@ import sys
 
 import argparse
 from http.server import HTTPServer
+from hashlib import sha256
 
 import HTTPRequestHandler as rh
+import exceptions
 
 # TODO:
 #   - Parsing config/config
 #   - Ban IP list
 #   - Alerts
-#   - Separate stderr and stdout
 
 
 class SimpleHTTPServer(HTTPServer):
@@ -31,6 +32,8 @@ class SimpleHTTPServer(HTTPServer):
         if self.verify_request(request, client_address):
             try:
                 self.process_request(request, client_address)
+            except exceptions.RebootCall:
+                raise
             except Exception:
                 self.handle_error(request, client_address)
                 self.shutdown_request(request)
@@ -71,11 +74,23 @@ def handle_arguments():
     return config
 
 
-def handler_factory(parameters: dict):
+def handler_factory(parameters: dict,
+                    change_token: bool = False,
+                    reload_handlers: bool = False):
     """
         "Class Factory" needed to implement ability
         to pass parameters to HTTP handler.
     """
+    if change_token:
+        token = rh.generate_session_token()
+        print(f"Session Token: {token}")
+        h = sha256()
+        h.update(token.encode("utf-8"))
+
+    if reload_handlers and change_token:
+        rh.prepare_handlers(h.digest())
+    elif reload_handlers and not change_token:
+        rh.prepare_handlers(b"")
 
     class CustomHandler(rh.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
@@ -107,9 +122,21 @@ def main():
     bind_addr = args["address"], args["port"]
     configure_output(args["stdout"], args["stderr"])
 
-    new_handler = handler_factory(args)
+    new_handler = handler_factory(args, True, True)
     httpd = SimpleHTTPServer(bind_addr, new_handler)
-    httpd.serve_forever()
+    while True:
+        try:
+            httpd.serve_forever()
+        except exceptions.RebootCall:
+            httpd.shutdown()
+            httpd.server_close()
+            new_handler = handler_factory(args, reload_handlers=True)
+            httpd = SimpleHTTPServer(bind_addr, new_handler)
+            print("Server rebooted")
+            continue
+        except Exception as e:
+            print(f"Error: {e}", file=sys.stderr)
+            httpd.shutdown()
 
 
 if __name__ == "__main__":

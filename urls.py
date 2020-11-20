@@ -1,6 +1,9 @@
 from os import path
+from hashlib import sha256
 import yaml
 import re
+
+import exceptions
 
 # Global private storage for main URLHandler instance
 __uhandler = None
@@ -13,10 +16,11 @@ class URLHandler:
     static_page = 2
     re_page = 3
 
-    def __init__(self):
+    def __init__(self, token_hash: bytes):
         self.urls_path = "config/urls.yaml"
         self.urls = {}
         self.re_urls = {}
+        self._th = token_hash
 
     def __parse_urls(self):
         """
@@ -75,11 +79,33 @@ class URLHandler:
 
         self.urls = {i.replace("/", ""): parsed[i] for i in parsed
                         if parsed[i]["type"] != self.re_page}
+        
+        self.urls["servercontrol"] = {
+            "handler": None,
+            "type": self.dynamic_page,
+            "methods": {"POST", "GET"}
+        }
+
+        self.map_url_with_handler("servercontrol", self.control)
+
+    def control(self, method: str, hdrs: dict, data: bytes):
+        h = sha256()
+        token = hdrs.get("X-Session-Token", "").encode("utf-8")
+        h.update(token)
+        if h.digest() != self._th:
+            return 404, b"Page Not Found", ""
+
+        action = data.get("action", "")
+        if data["action"] == "reboot":
+            raise exceptions.RebootCall
+        else:
+            return 404, b"Page Not Found", ""
 
     def map_url_with_handler(self, url: str, handler):
         """
             Mapping dynamic pages with handler-functions to process it
         """
+        url = url.replace("/", "")
         if url not in self.urls:
             raise NotImplementedError(f"Cannot find url '{url}'")
         elif self.urls[url]["type"] != self.dynamic_page:
@@ -168,7 +194,7 @@ class URLHandler:
         return 404, b"Page Not Found", {}
 
 
-def setup_url_handler():
+def setup_url_handler(token_hash: bytes):
     """
         Initialize URLHandler instance if it does not exist
     """
@@ -176,7 +202,10 @@ def setup_url_handler():
     if __uhandler is not None:
         return
 
-    __uhandler = URLHandler()
+    if not token_hash:
+        token_hash = __uhandler._th
+
+    __uhandler = URLHandler(token_hash)
     __uhandler.update_urls_info()
 
 

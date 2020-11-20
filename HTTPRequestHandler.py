@@ -1,30 +1,40 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs
+from datetime import datetime
+from hashlib import sha256
+from base64 import b64encode
+import random as rand
 
 from urls import URLHandler, setup_url_handler, get_url_handler
 from mapping import get_mappings
 
 
+def generate_session_token():
+    """
+        Generating token to control server remotely
+    """
+    seed = str(datetime.now()).encode("utf-8")
+    h = sha256()
+    h.update(seed)
+    seed = h.digest()
+    rand.seed(seed)
+    token = bytes([rand.randint(0, 255) for i in range(64)])
+    return b64encode(token).decode("utf-8")
 
+def prepare_handlers(token: bytes):
+    """
+        The routine prepares URLHandler to work
+        with HTTP handler. Need to be called berfore
+        HTTPServer() initialization.
+    """
+    setup_url_handler(token)
+    uhandler = get_url_handler()
+    mappings = get_mappings()
+    for mapping in mappings:
+        uhandler.map_url_with_handler(*mapping)
 
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
-
-    def __init__(self, *args, **kwargs):
-        self.prepare_handlers()
-        super(SimpleHTTPRequestHandler, self).__init__(*args, **kwargs)
-
-    def prepare_handlers(self):
-        """
-            The routine prepares URLHandler to work
-            with HTTP handler. Need to be called berfore
-            HTTPServer() initialization.
-        """
-        setup_url_handler()
-        uhandler = get_url_handler()
-        mappings = get_mappings()
-        for mapping in mappings:
-            uhandler.map_url_with_handler(*mapping)
 
     def log_message(self, *args):
         """
@@ -55,10 +65,15 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             self.send_header(header, content)
         super().end_headers()
 
+    def parse_url_parameters(self, params: str):
+        return dict(tuple(i.split("=", 1)) for i in params.split("&") if i)
+
     def do_GET(self):
         path_content = self.path.split("?", 1)
         url = path_content[0]
-        data = parse_qs(path_content[1]) if len(path_content) == 2 else {}
+        data = self.parse_url_parameters(path_content[1]) \
+                    if len(path_content) == 2 \
+                    else {}
         method = "GET"
         in_headers = dict(self.headers)
         self.read_data = b""
