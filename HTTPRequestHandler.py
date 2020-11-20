@@ -4,6 +4,7 @@ from datetime import datetime
 from hashlib import sha256
 from base64 import b64encode
 import random as rand
+import sys
 
 from urls import URLHandler, setup_url_handler, get_url_handler
 

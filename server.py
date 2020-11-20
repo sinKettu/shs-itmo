@@ -10,13 +10,19 @@ import exceptions
 
 # TODO:
 #   - Parsing config/config
-#   - Ban IP list
 #   - Alerts
+
+ignore_ip = set()
 
 
 class SimpleHTTPServer(HTTPServer):
     def __init__(self, *args, **kwargs):
+        self.ip_to_ignore = ignore_ip
+        del kwargs["ignore_ip"]
         super(SimpleHTTPServer, self).__init__(*args, **kwargs)
+    
+    def verify_request(self, request, client_address):
+        return client_address[0] not in self.ip_to_ignore
 
     def _handle_request_noblock(self):
         """Handle one request, without blocking.
@@ -41,6 +47,7 @@ class SimpleHTTPServer(HTTPServer):
                 self.shutdown_request(request)
                 raise
         else:
+            print(f"Request from {client_address} blocked")
             self.shutdown_request(request)
 
 
@@ -74,9 +81,20 @@ def handle_arguments():
     return config
 
 
+def load_ip_to_ignore(pth: str):
+    global ignore_ip
+    try:
+        fin = open(pth, "r")
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+
+    ignore_ip = set([i.strip() for i in fin.read().split("\n")])
+
+
 def handler_factory(parameters: dict,
                     change_token: bool = False,
-                    reload_handlers: bool = False):
+                    reload_handlers: bool = False,
+                    reload_ip_to_ignore: bool = False):
     """
         "Class Factory" needed to implement ability
         to pass parameters to HTTP handler.
@@ -91,6 +109,9 @@ def handler_factory(parameters: dict,
         rh.prepare_handlers(h.digest())
     elif reload_handlers and not change_token:
         rh.prepare_handlers(b"")
+    
+    if reload_ip_to_ignore:
+        load_ip_to_ignore(parameters["ban"])
 
     class CustomHandler(rh.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
@@ -122,16 +143,21 @@ def main():
     bind_addr = args["address"], args["port"]
     configure_output(args["stdout"], args["stderr"])
 
-    new_handler = handler_factory(args, True, True)
-    httpd = SimpleHTTPServer(bind_addr, new_handler)
+    new_handler = handler_factory(args, True, True, True)
+    httpd = SimpleHTTPServer(bind_addr, new_handler, ignore_ip=ignore_ip)
     while True:
         try:
             httpd.serve_forever()
         except exceptions.RebootCall:
             httpd.shutdown()
             httpd.server_close()
-            new_handler = handler_factory(args, reload_handlers=True)
-            httpd = SimpleHTTPServer(bind_addr, new_handler)
+            new_handler = handler_factory(args,
+                                          reload_handlers=True,
+                                          reload_ip_to_ignore=True)
+
+            httpd = SimpleHTTPServer(bind_addr,
+                                     new_handler,
+                                    ignore_ip=ignore_ip)
             print("Server rebooted")
             continue
         except Exception as e:
