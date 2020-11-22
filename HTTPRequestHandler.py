@@ -1,12 +1,19 @@
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from urllib.parse import parse_qs
 from datetime import datetime
+from time import asctime
 from hashlib import sha256
 from base64 import b64encode
+from os import getenv
 import random as rand
 import sys
 
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from urllib.parse import parse_qs
+import requests
+
 from urls import URLHandler, setup_url_handler, get_url_handler
+
+
+pages_to_alert = {}
 
 
 def generate_session_token():
@@ -34,6 +41,13 @@ def prepare_handlers(token: bytes):
     mappings = get_mappings()
     for mapping in mappings:
         uhandler.map_url_with_handler(*mapping)
+
+
+def load_watch_list(pth: str):
+    global pages_to_alert
+    fin = open(pth, "r")
+    pages_to_alert = set([i.strip() for i in fin.read().split("\n")])
+    fin.close()
 
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -69,6 +83,24 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def parse_url_parameters(self, params: str):
         return dict(tuple(i.split("=", 1)) for i in params.split("&") if i)
+    
+    def alert_if_needed(self, url: str, addr: str):
+        payload = {
+            'channel': "@aivanov",
+            'username': "secrets_tracker",
+            'text':  f"Peer `{addr}` accessed url `{url}` at `{asctime()}`",
+            "as_user": "secrets_tracker",
+        }
+
+        token = getenv("SLACK_TOKEN")
+        s = requests.Session()
+        resp = s.post("https://slack.com/api/chat.postMessage",
+                    json=payload,
+                    headers={
+                        "Content-Type": "application/json; charset=utf-8",
+                        "Authorization": f"Bearer {token}"
+                    }
+                )
 
     def do_GET(self):
         path_content = self.path.split("?", 1)
@@ -79,6 +111,9 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         method = "GET"
         in_headers = dict(self.headers)
         self.read_data = b""
+
+        if url in pages_to_alert:
+            self.alert_if_needed(url, self.client_address[0])
 
         uhandler = get_url_handler()
         status, data, headers = uhandler.handle(
@@ -99,6 +134,9 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         data = self.rfile.read(content_len)
         self.read_data = data
         method = "POST"
+
+        if url in pages_to_alert:
+            self.alert_if_needed(url, self.client_address[0])
 
         uhandler = get_url_handler()
         status, data, headers = uhandler.handle(

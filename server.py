@@ -10,7 +10,6 @@ import exceptions
 
 # TODO:
 #   - Parsing config/config
-#   - Alerts
 
 ignore_ip = set()
 
@@ -68,6 +67,9 @@ def handle_arguments():
     parser.add_argument("-b", dest="ban", type=str,
                         default="config/banned.txt",
                         help="Path to IP ban list")
+    parser.add_argument("-w", dest="watch", type=str,
+                        default="config/watch.txt",
+                        help="Path to list of pages to alert about visits")
     args = parser.parse_args()
 
     config = {
@@ -75,7 +77,8 @@ def handle_arguments():
         "port": args.port,
         "stdout": args.stdout,
         "stderr": args.stderr,
-        "ban": args.ban
+        "ban": args.ban,
+        "watch": args.watch
     }
 
     return config
@@ -94,7 +97,8 @@ def load_ip_to_ignore(pth: str):
 def handler_factory(parameters: dict,
                     change_token: bool = False,
                     reload_handlers: bool = False,
-                    reload_ip_to_ignore: bool = False):
+                    reload_ip_to_ignore: bool = False,
+                    reload_watch_list: bool = False):
     """
         "Class Factory" needed to implement ability
         to pass parameters to HTTP handler.
@@ -112,6 +116,9 @@ def handler_factory(parameters: dict,
     
     if reload_ip_to_ignore:
         load_ip_to_ignore(parameters["ban"])
+
+    if reload_watch_list:
+        rh.load_watch_list(parameters["watch"])
 
     class CustomHandler(rh.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
@@ -143,7 +150,7 @@ def main():
     bind_addr = args["address"], args["port"]
     configure_output(args["stdout"], args["stderr"])
 
-    new_handler = handler_factory(args, True, True, True)
+    new_handler = handler_factory(args, True, True, True, True)
     httpd = SimpleHTTPServer(bind_addr, new_handler, ignore_ip=ignore_ip)
     while True:
         try:
@@ -153,7 +160,8 @@ def main():
             httpd.server_close()
             new_handler = handler_factory(args,
                                           reload_handlers=True,
-                                          reload_ip_to_ignore=True)
+                                          reload_ip_to_ignore=True,
+                                          reload_watch_list=True)
 
             httpd = SimpleHTTPServer(bind_addr,
                                      new_handler,
