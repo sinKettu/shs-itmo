@@ -168,6 +168,8 @@ def main():
 
     new_handler = handler_factory(args, True, True, True, True)
     httpd = SimpleHTTPServer(bind_addr, new_handler, ignore_ip=ignore_ip)
+    print(f"Server listens to {bind_addr}")
+
     while True:
         try:
             httpd.serve_forever()
