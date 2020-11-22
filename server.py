@@ -44,7 +44,7 @@ class SimpleHTTPServer(HTTPServer):
                 self.shutdown_request(request)
                 raise
         else:
-            print(f"Request from {client_address} blocked")
+            print(f"Request from {client_address} blocked", flush=True)
             self.shutdown_request(request)
 
 
@@ -81,7 +81,7 @@ def handle_arguments():
             fin.close()
             config = yaml.load(data, yaml.SafeLoader)["config"]
         except Exception as e:
-            print(f"Error: cannot read config file: {e}")
+            print(f"Error: cannot read config file: {e}", flush=True)
             exit(-1)
 
     cmd_config = {
@@ -105,7 +105,7 @@ def load_ip_to_ignore(pth: str):
     try:
         fin = open(pth, "r")
     except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
+        print(f"Error: {e}", file=sys.stderr, flush=True)
 
     ignore_ip = set([i.strip() for i in fin.read().split("\n")])
 
@@ -121,7 +121,7 @@ def handler_factory(parameters: dict,
     """
     if change_token:
         token = rh.generate_session_token()
-        print(f"Session Token: {token}")
+        print(f"Session Token: {token}", flush=True)
         h = sha256()
         h.update(token.encode("utf-8"))
 
@@ -150,14 +150,18 @@ def configure_output(out, err):
             fout = open(out, "a")
             sys.stdout = fout
         except Exception as e:
-            print(f"Error: Could not redirect stdout: {e}", file=sys.stderr)
+            print(f"Error: Could not redirect stdout: {e}",
+                  file=sys.stderr,
+                  flush=True)
             exit(-1)
     if err is not None:
         try:
             ferr = open(err, "a")
             sys.stderr = ferr
         except Exception as e:
-            print(f"Error: Could not redirect stderr: {e}", file=sys.stderr)
+            print(f"Error: Could not redirect stderr: {e}",
+                  file=sys.stderr,
+                  flush=True)
             exit(-1)
 
 
@@ -168,7 +172,7 @@ def main():
 
     new_handler = handler_factory(args, True, True, True, True)
     httpd = SimpleHTTPServer(bind_addr, new_handler, ignore_ip=ignore_ip)
-    print(f"Server listens to {bind_addr}")
+    print(f"Server listens to {bind_addr}", flush=True)
 
     while True:
         try:
@@ -184,10 +188,10 @@ def main():
             httpd = SimpleHTTPServer(bind_addr,
                                      new_handler,
                                     ignore_ip=ignore_ip)
-            print("Server rebooted")
+            print("Server rebooted", flush=True)
             continue
         except Exception as e:
-            print(f"Error: {e}", file=sys.stderr)
+            print(f"Error: {e}", file=sys.stderr, flush=True)
             httpd.shutdown()
 
 

@@ -68,9 +68,9 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
         msg += b"\n-------------------------------------------------------\n\n"
         try:
-            print(msg.decode("utf-8"))
+            print(msg.decode("utf-8"), flush=True)
         except UnicodeDecodeError:
-            print(msg)
+            print(msg, flush=True)
 
     def version_string(self):
         return "Unknown Server"
