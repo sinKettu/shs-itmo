@@ -2,14 +2,7 @@
     type: dynamic
     handler: null
     methods: ["get"]
-/data/:
-    type: none
-/data/test/:
-    type: static
-    handler: data/test.html
-    methods: ["post"]
-    headers:
-        Content-Type: application/json
 ^/test/.*(html|js|png|jpg)/?$:
     type: re
     handler: null
+    methods: ["get", "post"]
