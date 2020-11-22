@@ -7,9 +7,7 @@ from hashlib import sha256
 
 import HTTPRequestHandler as rh
 import exceptions
-
-# TODO:
-#   - Parsing config/config
+import yaml
 
 ignore_ip = set()
 
@@ -57,22 +55,36 @@ def handle_arguments():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", dest="address", type=str,
-                        default="127.0.0.1", help="Bind Address")
+                        default="", help="Bind Address")
     parser.add_argument("-p", dest="port", type=int,
-                        default=80, help="Port to listen to")
+                        default=0, help="Port to listen to")
     parser.add_argument("-o", dest="stdout", help="Path to log stdout",
                         default=None)
     parser.add_argument("-e", dest="stderr", help="Path to log stderr",
                         default=None)
     parser.add_argument("-b", dest="ban", type=str,
-                        default="config/banned.txt",
+                        default="",
                         help="Path to IP ban list")
     parser.add_argument("-w", dest="watch", type=str,
-                        default="config/watch.txt",
-                        help="Path to list of pages to alert about visits")
+                        default="",
+                        help="Path to list of pages to alert about visits"),
+    parser.add_argument("-c", dest="config", type=str,
+                        default="config/config.yaml",
+                        help="Path to config file to use. Given cmd " +
+                             "parameters will overwrite config parameters")
     args = parser.parse_args()
 
-    config = {
+    if args.config:
+        try:
+            fin = open(args.config, "r")
+            data = fin.read()
+            fin.close()
+            config = yaml.load(data, yaml.SafeLoader)["config"]
+        except Exception as e:
+            print(f"Error: cannot read config file: {e}")
+            exit(-1)
+
+    cmd_config = {
         "address": args.address,
         "port": args.port,
         "stdout": args.stdout,
@@ -80,6 +92,10 @@ def handle_arguments():
         "ban": args.ban,
         "watch": args.watch
     }
+
+    for key in cmd_config:
+        if cmd_config[key]:
+            config[key] = cmd_config[key]
 
     return config
 
