@@ -122,6 +122,8 @@ def handler_factory(parameters: dict,
     if change_token:
         token = rh.generate_session_token()
         print(f"Session Token: {token}", flush=True)
+        print(f"cURL: curl -H \"X-Session-Token: {token}\" " +
+              f"http://127.0.0.1:{parameters['port']}/server/control/?action=")
         h = sha256()
         h.update(token.encode("utf-8"))
 

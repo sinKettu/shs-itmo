@@ -108,8 +108,9 @@ class URLHandler:
         url = url.replace("/", "")
         if url not in self.urls:
             raise NotImplementedError(f"Cannot find url '{url}'")
-        elif self.urls[url]["type"] != self.dynamic_page:
-            raise NotImplementedError(f"Cannot map not dynamic url '{url}'")
+        elif self.urls[url]["type"] != self.dynamic_page and \
+             self.urls[url]["type"] != self.re_page:
+            raise NotImplementedError(f"Cannot map not dynamic/re url '{url}'")
         elif self.urls[url]["handler"] is not None:
             raise NotImplementedError(f"Handler already exists")
         else:

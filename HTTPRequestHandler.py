@@ -5,13 +5,14 @@ from base64 import b64encode
 from os import getenv
 import random as rand
 import sys
+import importlib
 
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs
 import requests
 
+import mapping
 from urls import URLHandler, setup_url_handler, get_url_handler
-
 
 pages_to_alert = {}
 
@@ -34,19 +35,20 @@ def prepare_handlers(token: bytes):
         with HTTP handler. Need to be called berfore
         HTTPServer() initialization.
     """
-    from mapping import get_mappings
 
+    mapping = importlib.reload(sys.modules["mapping"])
     setup_url_handler(token)
     uhandler = get_url_handler()
-    mappings = get_mappings()
-    for mapping in mappings:
-        uhandler.map_url_with_handler(*mapping)
+    mappings = mapping.get_mappings()
+    for mp in mappings:
+        uhandler.map_url_with_handler(*mp)
 
 
 def load_watch_list(pth: str):
     global pages_to_alert
     fin = open(pth, "r")
-    pages_to_alert = set([i.strip() for i in fin.read().split("\n")])
+    pages_to_alert = set([i.strip().replace("/", "") \
+                          for i in fin.read().split("\n")])
     fin.close()
 
 
@@ -112,7 +114,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         in_headers = dict(self.headers)
         self.read_data = b""
 
-        if url in pages_to_alert:
+        if url.replace("/", "") in pages_to_alert:
             self.alert_if_needed(url, self.client_address[0])
 
         uhandler = get_url_handler()
