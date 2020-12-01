@@ -48,7 +48,7 @@ def load_watch_list(pth: str):
     global pages_to_alert
     fin = open(pth, "r")
     pages_to_alert = set([i.strip().replace("/", "") \
-                          for i in fin.read().split("\n")])
+                          for i in fin.read().split("\n") if i])
     fin.close()
 
 
