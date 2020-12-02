@@ -29,6 +29,7 @@ def generate_session_token():
     token = bytes([rand.randint(0, 255) for i in range(64)])
     return b64encode(token).decode("utf-8")
 
+
 def prepare_handlers(token: bytes):
     """
         The routine prepares URLHandler to work
@@ -47,7 +48,7 @@ def prepare_handlers(token: bytes):
 def load_watch_list(pth: str):
     global pages_to_alert
     fin = open(pth, "r")
-    pages_to_alert = set([i.strip().replace("/", "") \
+    pages_to_alert = set([i.strip().replace("/", "")
                           for i in fin.read().split("\n") if i])
     fin.close()
 
@@ -85,7 +86,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def parse_url_parameters(self, params: str):
         return dict(tuple(i.split("=", 1)) for i in params.split("&") if i)
-    
+
     def alert_if_needed(self, url: str, addr: str):
         payload = {
             'channel': "@aivanov",
@@ -97,19 +98,18 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         token = getenv("SLACK_TOKEN")
         s = requests.Session()
         resp = s.post("https://slack.com/api/chat.postMessage",
-                    json=payload,
-                    headers={
-                        "Content-Type": "application/json; charset=utf-8",
-                        "Authorization": f"Bearer {token}"
-                    }
-                )
+                      json=payload,
+                      headers={
+                          "Content-Type": "application/json; charset=utf-8",
+                          "Authorization": f"Bearer {token}"
+                      })
 
     def do_GET(self):
         path_content = self.path.split("?", 1)
         url = path_content[0]
         data = self.parse_url_parameters(path_content[1]) \
-                    if len(path_content) == 2 \
-                    else {}
+            if len(path_content) == 2 \
+            else {}
         method = "GET"
         in_headers = dict(self.headers)
         self.read_data = b""

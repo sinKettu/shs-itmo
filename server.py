@@ -17,7 +17,7 @@ class SimpleHTTPServer(HTTPServer):
         self.ip_to_ignore = ignore_ip
         del kwargs["ignore_ip"]
         super(SimpleHTTPServer, self).__init__(*args, **kwargs)
-    
+
     def verify_request(self, request, client_address):
         return client_address[0] not in self.ip_to_ignore
 
@@ -131,7 +131,7 @@ def handler_factory(parameters: dict,
         rh.prepare_handlers(h.digest())
     elif reload_handlers and not change_token:
         rh.prepare_handlers(b"")
-    
+
     if reload_ip_to_ignore:
         load_ip_to_ignore(parameters["ban"])
 
@@ -189,7 +189,7 @@ def main():
 
             httpd = SimpleHTTPServer(bind_addr,
                                      new_handler,
-                                    ignore_ip=ignore_ip)
+                                     ignore_ip=ignore_ip)
             print("Server rebooted", flush=True)
             continue
         except Exception as e:

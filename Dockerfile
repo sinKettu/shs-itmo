@@ -1,12 +1,16 @@
 FROM python
 ARG BIND_PORT=8081
 
+RUN apt update \
+    && apt install -y --no-install-recommends vim \
+    && apt clean
+
 WORKDIR /opt
 RUN mkdir server && mkdir server/config
 
 COPY *.py server/
 COPY requirments.txt server/
-COPY test/ server/
+COPY test server/
 COPY config/* server/config/
 
 WORKDIR /opt/server
