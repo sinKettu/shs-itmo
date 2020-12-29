@@ -6,11 +6,13 @@ RUN apt update \
     && apt clean
 
 WORKDIR /opt
-RUN mkdir server && mkdir server/config
+RUN mkdir server \
+    && mkdir server/config \
+    && mkdir server/test
 
 COPY *.py server/
 COPY requirments.txt server/
-COPY test server/
+COPY test/* server/test/
 COPY config/* server/config/
 
 WORKDIR /opt/server
