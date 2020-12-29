@@ -78,7 +78,7 @@ class URLHandler:
                         if parsed[i]["type"] == self.re_page}
 
         self.urls = {i.replace("/", ""): parsed[i] for i in parsed
-                        if parsed[i]["type"] != self.re_page}
+                     if parsed[i]["type"] != self.re_page}
         
         self.urls["servercontrol"] = {
             "handler": None,
@@ -96,7 +96,7 @@ class URLHandler:
             return 404, b"Page Not Found", ""
 
         action = data.get("action", "")
-        if data["action"] == "reboot":
+        if data["url"]["action"] == "reboot":
             raise exceptions.RebootCall
         else:
             return 404, b"Page Not Found", ""
@@ -109,7 +109,7 @@ class URLHandler:
         if url not in self.urls:
             raise NotImplementedError(f"Cannot find url '{url}'")
         elif self.urls[url]["type"] != self.dynamic_page and \
-             self.urls[url]["type"] != self.re_page:
+                self.urls[url]["type"] != self.re_page:
             raise NotImplementedError(f"Cannot map not dynamic/re url '{url}'")
         elif self.urls[url]["handler"] is not None:
             raise NotImplementedError(f"Handler already exists")
@@ -136,7 +136,7 @@ class URLHandler:
             return 200, data, headers
 
         elif self.urls[url_ex]["type"] == self.dynamic_page and \
-             self.urls[url_ex]["handler"] is not None:
+                self.urls[url_ex]["handler"] is not None:
             headers = self.urls[url_ex].get("headers", {})
             status, data, headers = self.urls[url_ex]["handler"](
                 method,
@@ -146,13 +146,13 @@ class URLHandler:
             return status, data, headers
 
         elif self.urls[url_ex]["type"] == self.dynamic_page and \
-             self.urls[url_ex]["handler"] is None:
-             return 500, b"Internal Server Error", {}
+                self.urls[url_ex]["handler"] is None:
+            return 500, b"Internal Server Error", {}
 
         else:
             return 404, b"Page Not Found", {}
 
-    def handle(self, url: str, method: str, in_headers: dict, data: bytes):
+    def handle(self, url: str, method: str, in_headers: dict, data: dict):
         formatted_url = url.replace("/", "")
         if formatted_url in self.urls:
             return self.__check_and_process(

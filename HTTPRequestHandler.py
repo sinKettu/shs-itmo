@@ -107,12 +107,16 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         path_content = self.path.split("?", 1)
         url = path_content[0]
-        data = self.parse_url_parameters(path_content[1]) \
+        url_data = self.parse_url_parameters(path_content[1]) \
             if len(path_content) == 2 \
             else {}
         method = "GET"
         in_headers = dict(self.headers)
         self.read_data = b""
+        data = {
+            "body": b"",
+            "url": url_data
+        }
 
         if url.replace("/", "") in pages_to_alert:
             self.alert_if_needed(url, self.client_address[0])
@@ -130,12 +134,20 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def do_POST(self):
-        url = self.path.split("?", 1)[0]
+        path_content = self.path.split("?", 1)
+        url = path_content[0]
+        url_data = self.parse_url_parameters(path_content[1]) \
+            if len(path_content) == 2 \
+            else {}
         in_headers = dict(self.headers)
         content_len = int(in_headers.get("Content-Length", 0))
         data = self.rfile.read(content_len)
         self.read_data = data
         method = "POST"
+        data = {
+            "body": data,
+            "url": url_data
+        }
 
         if url in pages_to_alert:
             self.alert_if_needed(url, self.client_address[0])
