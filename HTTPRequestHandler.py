@@ -66,8 +66,11 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         msg += str(self.headers).encode("utf-8")
         length = int(self.headers.get("Content-Length", 0))
 
-        if self.read_data:
-            msg += self.read_data
+        try:
+            if self.read_data:
+                msg += self.read_data
+        except Exception as e:
+            msg += f"[No `self.read_data`: {e}"
 
         msg += b"\n-------------------------------------------------------\n\n"
         try:
