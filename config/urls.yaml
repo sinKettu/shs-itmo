@@ -6,3 +6,7 @@
     type: re
     handler: null
     methods: ["get", "post"]
+/redirect:
+    type: dynamic
+    handler: null
+    methods: ["get"]
