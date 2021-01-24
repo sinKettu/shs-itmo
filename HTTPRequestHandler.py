@@ -59,20 +59,30 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         """
             Overriding built-in method for more smart logging
         """
-        tm = self.log_date_time_string().encode("utf-8")
-        addr, port = self.client_address
-        msg = tm + b"\n" + f"Request from: {addr}:{port}\n\n".encode("utf-8")
-        msg += str(self.requestline).encode("utf-8") + b"\n"
-        msg += str(self.headers).encode("utf-8")
-        length = int(self.headers.get("Content-Length", 0))
+        try:
+            tm = self.log_date_time_string().encode("utf-8")
+            addr, port = self.client_address
+            msg = (tm + b"\n" + f"Request from: {addr}:{port}\n\n"
+                   .encode("utf-8"))
+            msg += str(self.requestline).encode("utf-8") + b"\n"
+            msg += str(self.headers).encode("utf-8")
+            length = int(self.headers.get("Content-Length", 0))
+        except Exception as e:
+            msg = f"Error while trying to log message, exception: {e}\n"
+            msg = f"{msg}Function args: {args}"
+            msg += "\n--------------------------------------------------\n\n"
+            print(msg, flush=True, file=sys.stderr)
+            return
 
         try:
-            if self.read_data:
-                msg += self.read_data
+            msg += self.read_data
         except Exception as e:
-            msg += f"[No `self.read_data`: {e}"
+            msg += b"[No `self.read_data`: " + e.encode("utf-8")
+            msg += b"\n--------------------------------------------------\n\n"
+            print(msg, flush=True, file=sys.stderr)
+            return
 
-        msg += b"\n-------------------------------------------------------\n\n"
+        msg += b"\n--------------------------------------------------\n\n"
         try:
             print(msg.decode("utf-8"), flush=True)
         except UnicodeDecodeError:
