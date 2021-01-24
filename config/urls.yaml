@@ -2,7 +2,7 @@
     type: dynamic
     handler: null
     methods: ["get"]
-^/test/.*(html|js|png|jpg)/?$:
+^/static/(?!xss).*(html|js|png|jpg)/?$:
     type: re
     handler: null
     methods: ["get", "post"]
@@ -10,3 +10,9 @@
     type: dynamic
     handler: null
     methods: ["get"]
+/xss/check:
+    type: static
+    handler: static/xss.js
+    methods: ["get", "post", "put", "delete"]
+    headers:
+        Content-Type: text/javascript; charset=UTF-8
