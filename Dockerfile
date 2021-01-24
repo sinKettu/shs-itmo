@@ -10,7 +10,7 @@ RUN mkdir server
 
 COPY *.py server/
 COPY requirments.txt server/
-COPY test server/test
+COPY static server/static
 COPY config server/config
 
 WORKDIR /opt/server
