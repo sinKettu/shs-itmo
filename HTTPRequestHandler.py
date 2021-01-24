@@ -60,13 +60,22 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             Overriding built-in method for more smart logging
         """
         try:
-            tm = self.log_date_time_string().encode("utf-8")
+            tm = self.log_date_time_string()
             addr, port = self.client_address
-            msg = (tm + b"\n" + f"Request from: {addr}:{port}\n\n"
-                   .encode("utf-8"))
-            msg += str(self.requestline).encode("utf-8") + b"\n"
-            msg += str(self.headers).encode("utf-8")
-            length = int(self.headers.get("Content-Length", 0))
+
+            if addr.startswith("172."):
+                _addr = self.headers.get("X-Real-IP", None)
+                if _addr:
+                    addr = _addr
+
+            mark = f"[{tm} | {addr}:{port}] "
+
+            rline = str(self.requestline).replace("\n", f"\n{mark}")
+            msg = mark.encode("utf-8")
+            msg += rline.encode("utf-8") + b"\n" + mark.encode("utf-8")
+
+            hdrs = str(self.headers).replace("\n", f"\n{mark}")
+            msg += hdrs.encode("utf-8")
         except Exception as e:
             msg = f"Error while trying to log message, exception: {e}\n"
             msg = f"{msg}Function args: {args}"
@@ -120,9 +129,12 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         path_content = self.path.split("?", 1)
         url = path_content[0]
-        url_data = self.parse_url_parameters(path_content[1]) \
-            if len(path_content) == 2 \
-            else {}
+
+        if len(path_content) == 2:
+            url_data = self.parse_url_parameters(path_content[1])
+        else:
+            url_data = {}
+
         method = "GET"
         in_headers = dict(self.headers)
         self.read_data = b""
@@ -149,9 +161,12 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         path_content = self.path.split("?", 1)
         url = path_content[0]
-        url_data = self.parse_url_parameters(path_content[1]) \
-            if len(path_content) == 2 \
-            else {}
+
+        if len(path_content) == 2:
+            url_data = self.parse_url_parameters(path_content[1])
+        else:
+            url_data = {}
+
         in_headers = dict(self.headers)
         content_len = int(in_headers.get("Content-Length", 0))
         data = self.rfile.read(content_len)
