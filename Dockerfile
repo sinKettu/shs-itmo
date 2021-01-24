@@ -6,14 +6,12 @@ RUN apt update \
     && apt clean
 
 WORKDIR /opt
-RUN mkdir server \
-    && mkdir server/config \
-    && mkdir server/test
+RUN mkdir server
 
 COPY *.py server/
 COPY requirments.txt server/
-COPY test/* server/test/
-COPY config/* server/config/
+COPY test server/test
+COPY config server/config
 
 WORKDIR /opt/server
 EXPOSE ${BIND_PORT}
