@@ -131,7 +131,10 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         url = path_content[0]
 
         if len(path_content) == 2:
-            url_data = self.parse_url_parameters(path_content[1])
+            try:
+                url_data = self.parse_url_parameters(path_content[1])
+            except Exception:
+                url_data = {}
         else:
             url_data = {}
 
@@ -163,7 +166,10 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         url = path_content[0]
 
         if len(path_content) == 2:
-            url_data = self.parse_url_parameters(path_content[1])
+            try:
+                url_data = self.parse_url_parameters(path_content[1])
+            except Exception:
+                url_data = {}
         else:
             url_data = {}
 
