@@ -2,6 +2,7 @@
 # dymaic handlers must accept method, incomming headers and data
 # re handlers must accept url, method, incomming headers and data
 from hashlib import sha256
+from datetime import datetime
 
 cookies = {}
 users = {}
@@ -37,6 +38,7 @@ def handle_token_protected(method, headers, data):
 
 
 def handle_register(method, headers, data):
+    global users
     if method == "GET":
         fin = open("static/register.html", "rb")
         d = fin.read()
@@ -59,7 +61,37 @@ def handle_register(method, headers, data):
         d = fin.read()
         fin.close()
         return 200, d, {"content-type": "text/html; charset=UTF-8"}
+    return 404, b"", {}
 
 
 def handle_login(method, headers, data):
-    return 200, b"", {}
+    global users
+    global cookies
+    if method == "GET":
+        fin = open("static/login.html", "rb")
+        d = fin.read()
+        fin.close()
+        return 200, d, {"content-type": "text/html; charset=UTF-8"}
+    elif method == "POST":
+        d = data["body"].decode("utf-8").split("&")
+        d = dict([tuple(i.split("=")) for i in d])
+        login = d["login"]
+        password = d["password"]
+        h = sha256()
+        h.update(password.encode("utf-8"))
+        if login in users and h.digest() == users[login]:
+            h = sha256()
+            h.update(users[login])
+            dt = str(datetime.now()).encode("utf-8")
+            h.update(dt)
+            hdrs = {
+                "Set-Cookie": f"userid={h.hexdigest()}; HttpOnly",
+                "content-type": "text/html; charset=UTF-8"
+            }
+            cookies[h.hexdigest()] = login
+            fin = open("static/suc_login.html", "rb")
+            d = fin.read()
+            fin.close()
+            return 200, d, hdrs
+        else:
+            return 403, b"Wrong login and/or password", {}
