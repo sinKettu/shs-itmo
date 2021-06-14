@@ -150,16 +150,20 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             self.alert_if_needed(url, self.client_address[0])
 
         uhandler = get_url_handler()
-        status, data, headers = uhandler.handle(
-            url,
-            method,
-            in_headers,
-            data
-        )
+        try:
+            status, data, headers = uhandler.handle(
+                url,
+                method,
+                in_headers,
+                data
+            )
 
-        self.send_response(status)
-        self.add_headers(headers)
-        self.wfile.write(data)
+            self.send_response(status)
+            self.add_headers(headers)
+            self.wfile.write(data)
+        except Exception:
+            self.send_response(500)
+            self.wfile.write(b"Internal Server Error")
 
     def do_POST(self):
         path_content = self.path.split("?", 1)
@@ -187,13 +191,17 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             self.alert_if_needed(url, self.client_address[0])
 
         uhandler = get_url_handler()
-        status, data, headers = uhandler.handle(
-            url,
-            method,
-            in_headers,
-            data
-        )
+        try:
+            status, data, headers = uhandler.handle(
+                url,
+                method,
+                in_headers,
+                data
+            )
 
-        self.send_response(status)
-        self.add_headers(headers)
-        self.wfile.write(data)
+            self.send_response(status)
+            self.add_headers(headers)
+            self.wfile.write(data)
+        except Exception as e:
+            self.send_response(500)
+            self.wfile.write(b"Internal Server Error")

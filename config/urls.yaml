@@ -1,18 +1,32 @@
 /:
-    type: dynamic
-    handler: null
+    type: static
+    handler: static/index.html
     methods: ["get"]
-^/static/(?!xss).*(html|js|png|jpg)/?$:
-    type: re
+    headers:
+        content-type: text/html; charset=UTF-8
+/csrf-naive/:
+    type: dynamic
     handler: null
     methods: ["get", "post"]
-/redirect:
+/csrf-token/:
     type: dynamic
     handler: null
-    methods: ["get"]
-/xss/check:
-    type: static
-    handler: static/xss.js
-    methods: ["get", "post", "put", "delete"]
+    methods: ["get", "post"]
+/origin-referer-protected/:
+    type: dynamic
+    handler: null
+    methods: ["get", "post"]
+/token-cors-protected/:
+    type: dynamic
+    handler: null
+    methods: ["get", "post"]
     headers:
-        Content-Type: text/javascript; charset=UTF-8
+        Vary: Origin
+/register/:
+    type: dynamic
+    handler: null
+    methods: ["get", "post"]
+/login/:
+    type: dynamic
+    handler: null
+    methods: ["get", "post"]
