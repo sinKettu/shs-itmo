@@ -137,12 +137,12 @@ class URLHandler:
 
         elif self.urls[url_ex]["type"] == self.dynamic_page and \
                 self.urls[url_ex]["handler"] is not None:
-            headers = self.urls[url_ex].get("headers", {})
             status, data, headers = self.urls[url_ex]["handler"](
                 method,
                 in_headers,
                 data
             )
+            headers.update(self.urls[url_ex].get("headers", {}))
             return status, data, headers
 
         elif self.urls[url_ex]["type"] == self.dynamic_page and \
@@ -181,6 +181,8 @@ class URLHandler:
                     in_headers,
                     data
                 )
+                headers.update(self.urls[url_ex].get("headers", {}))
+                return status, data, headers
 
             elif (path.abspath(f".{url}").startswith(path.abspath("."))
                     and path.exists(f".{url}")
