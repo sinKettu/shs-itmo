@@ -12,6 +12,10 @@
     type: dynamic
     handler: null
     methods: ["get", "post"]
+    headers:
+        Access-Control-Allow-Origin: "*"
+        Access-Control-Allow-Credentials: "true"
+        Access-Control-Allow-Methods: GET, POST, OPTIONS, HEAD
 /origin-referer-protected/:
     type: dynamic
     handler: null

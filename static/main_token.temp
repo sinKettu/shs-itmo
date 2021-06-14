@@ -1,0 +1,17 @@
+<html>
+    <head>
+    </head>
+    <body>
+        <p>Вы вошли как <b>USERNAME</b>.</p>
+        <form action="/csrf-token/" method="POST">
+            <p>Текст сообщения:</p>
+            <textarea name="message">
+Enter details here...
+             </textarea><br>
+             <input type="hidden" value="_TOKEN_" name="token">
+            <p><input type="submit" value="Отправить"></p>
+            <br>-----------------------------------------<br>
+            </form>
+            __MESSAGES__
+    </body>
+</html>
