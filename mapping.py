@@ -6,9 +6,7 @@ from datetime import datetime
 import re
 
 cookies = {}
-users = {
-    "a": b'\xca\x97\x81\x12\xca\x1b\xbd\xca\xfa\xc21\xb3\x9a#\xdcM\xa7\x86\xef\xf8\x14|Nr\xb9\x80w\x85\xaf\xeeH\xbb'
-}
+users = {}
 messages = []
 tokens = {}
 url_encoded_re = r"\%[0-9A-Za-z]{2,2}"
