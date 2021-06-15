@@ -8,29 +8,40 @@
     type: dynamic
     handler: null
     methods: ["get", "post"]
+    headers:
+        content-type: text/html; charset=UTF-8
 /csrf-token/:
     type: dynamic
     handler: null
     methods: ["get", "post"]
     headers:
+        content-type: text/html; charset=UTF-8
         Access-Control-Allow-Origin: "*"
         Access-Control-Allow-Credentials: "true"
         Access-Control-Allow-Methods: GET, POST, OPTIONS, HEAD
+        Vary: Origin
 /origin-referer-protected/:
     type: dynamic
     handler: null
     methods: ["get", "post"]
+    headers:
+        content-type: text/html; charset=UTF-8
 /token-cors-protected/:
     type: dynamic
     handler: null
     methods: ["get", "post"]
     headers:
+        content-type: text/html; charset=UTF-8
         Vary: Origin
 /register/:
     type: dynamic
     handler: null
     methods: ["get", "post"]
+    headers:
+        content-type: text/html; charset=UTF-8
 /login/:
     type: dynamic
     handler: null
     methods: ["get", "post"]
+    headers:
+        content-type: text/html; charset=UTF-8

@@ -3,7 +3,7 @@
     </head>
     <body>
         <p>Вы вошли как <b>USERNAME</b>.</p>
-        <form action="/csrf-token/" method="POST">
+        <form action="_URL_" method="POST">
             <p>Текст сообщения:</p>
             <textarea name="message">
 Enter details here...

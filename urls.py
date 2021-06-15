@@ -79,7 +79,7 @@ class URLHandler:
 
         self.urls = {i.replace("/", ""): parsed[i] for i in parsed
                      if parsed[i]["type"] != self.re_page}
-        
+
         self.urls["servercontrol"] = {
             "handler": None,
             "type": self.dynamic_page,
