@@ -121,7 +121,17 @@ def handle_token(method, headers, data):
             mes_parsed = f"{mes_parsed}{tmp}"
         d = re.sub(r"__MESSAGES__", mes_parsed, d).encode("utf-8")
 
-        return 200, d, {"content-type": "text/html; charset=UTF-8"}
+        if "Origin" in headers:
+            hdrs = {
+                "Access-Control-Allow-Origin": headers["Origin"],
+                "content-type": "text/html; charset=UTF-8"
+            }
+        else:
+            hdrs = {
+                "content-type": "text/html; charset=UTF-8"
+            }
+
+        return 200, d, hdrs
     elif method == "POST":
         cookie = headers.get("Cookie", "").split("userid=")[-1].split(";")[0]
         if not(cookie in cookies):
