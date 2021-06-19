@@ -5,14 +5,20 @@ from hashlib import sha256
 from datetime import datetime
 import re
 
+# Cookies storage
 cookies = {}
+# Users storage
 users = {}
+# Forum's messages storage
 messages = []
+# Users CSRF-tokens' storage
 tokens = {}
+
 url_encoded_re = r"\%[0-9A-Za-z]{2,2}"
 
 
 def get_mappings():
+    # map URI and function to handle it
     handlers_mapping = [
         ("/csrf-naive/", handle_naive),
         ("/csrf-token/", handle_token),
@@ -26,6 +32,7 @@ def get_mappings():
 
 
 def handle_naive(method, headers, data):
+    # Naive page without any protection
     global messages
     if method == "GET":
         if not ("Cookie" in headers and "userid=" in headers["Cookie"]):
@@ -82,6 +89,7 @@ def handle_naive(method, headers, data):
 
 
 def handle_token(method, headers, data):
+    # Page with token protection, but misconfigured COP
     global messages
     global tokens
     if method == "GET":
@@ -101,11 +109,13 @@ def handle_token(method, headers, data):
         fin = open("static/main_token.temp", "r")
         d = fin.read()
         fin.close()
+
         d = re.sub(r"USERNAME", login, d)
         h = sha256()
         h.update(cookie.encode("utf-8"))
         h.update(str(datetime.now()).encode("utf-8"))
         d = re.sub(r"_TOKEN_", h.hexdigest(), d)
+
         tmp = tokens.get(cookie, set())
         tmp.add(h.hexdigest())
         tokens[cookie] = tmp
@@ -122,8 +132,11 @@ def handle_token(method, headers, data):
         d = re.sub(r"__MESSAGES__", mes_parsed, d).encode("utf-8")
 
         if "Origin" in headers:
+            # This headers allow an attacker to get user's token
             hdrs = {
                 "Access-Control-Allow-Origin": headers["Origin"],
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS, HEAD",
                 "content-type": "text/html; charset=UTF-8"
             }
         else:
@@ -145,10 +158,12 @@ def handle_token(method, headers, data):
         d = dict([tuple(i.split("=")) for i in d])
         tkns = tokens.get(cookie, set())
 
-        if d["token"] not in tokens[cookie]:
+        # Protection by users' tokens
+        if d["token"] not in tkns:
             return 403, b"CSRF Protection", {}
         else:
             tkns.remove(d["token"])
+            tokens[cookie] = tkns
 
         message = d["message"].replace("+", " ")
         for i in re.finditer(url_encoded_re, message):
@@ -161,6 +176,7 @@ def handle_token(method, headers, data):
 
 
 def handle_origin_protected(method, headers, data):
+    # The same as "naive", but with protection
     global messages
     if method == "GET":
         if not ("Cookie" in headers and "userid=" in headers["Cookie"]):
@@ -202,6 +218,7 @@ def handle_origin_protected(method, headers, data):
             fin.close()
             return 200, d, {"content-type": "text/html; charset=UTF-8"}
 
+        # Protection by Origin/Referer checks via regexes
         if "Origin" in headers:
             if not re.match(
                     r"^https?:\/\/test\.itmo(:{1,1}[0-9]{1,5}){0,1}$",
@@ -230,6 +247,7 @@ def handle_origin_protected(method, headers, data):
 
 
 def handle_token_protected(method, headers, data):
+    # The same as token-protected but with CORS (COP)
     global messages
     global tokens
     if method == "GET":
@@ -270,6 +288,7 @@ def handle_token_protected(method, headers, data):
             mes_parsed = f"{mes_parsed}{tmp}"
         d = re.sub(r"__MESSAGES__", mes_parsed, d).encode("utf-8")
 
+        # A lack of CORS headers in response is a protection itself
         return 200, d, {"content-type": "text/html; charset=UTF-8"}
     elif method == "POST":
         cookie = headers.get("Cookie", "").split("userid=")[-1].split(";")[0]
@@ -284,10 +303,12 @@ def handle_token_protected(method, headers, data):
         d = dict([tuple(i.split("=")) for i in d])
         tkns = tokens.get(cookie, set())
 
-        if d["token"] not in tokens[cookie]:
+        # Protection by tokens
+        if d["token"] not in tkns:
             return 403, b"CSRF Protection", {}
         else:
             tkns.remove(d["token"])
+            tokens[cookie] = tkns
 
         message = d["message"].replace("+", " ")
         for i in re.finditer(url_encoded_re, message):
@@ -300,6 +321,7 @@ def handle_token_protected(method, headers, data):
 
 
 def handle_register(method, headers, data):
+    # The page to register new users
     global users
     if method == "GET":
         fin = open("static/register.html", "rb")
@@ -327,6 +349,7 @@ def handle_register(method, headers, data):
 
 
 def handle_login(method, headers, data):
+    # The page to log in as a user and get cookies
     global users
     global cookies
     if method == "GET":

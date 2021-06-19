@@ -16,9 +16,6 @@
     methods: ["get", "post"]
     headers:
         content-type: text/html; charset=UTF-8
-        Access-Control-Allow-Origin: "*"
-        Access-Control-Allow-Credentials: "true"
-        Access-Control-Allow-Methods: GET, POST, OPTIONS, HEAD
         Vary: Origin
 /origin-referer-protected/:
     type: dynamic
