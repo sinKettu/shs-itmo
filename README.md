@@ -12,7 +12,10 @@ To get help about parameters:
 ```python3 server.py -h```
 
 To run with default configs:
-```python3 servert.py```
+```python3 server.py```
+
+To specify address and port to bind:
+```python3 server.py -a "address" -p "port"```
 
 ## Docker
 
